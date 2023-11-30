@@ -1,0 +1,14 @@
+<launch>
+    <!--  ************** Global Parameters ***************  -->
+    <param name="/use_sim_time" value="true"/>
+    <!--  ************** Stage Simulator ***************  -->
+    <node pkg="stage_ros" type="stageros" name="dwa_envrionment" args="$(find dwa_multi_robot)/world/office.world">
+        <remap from="base_scan" to="scan"/>
+    </node>
+    <!-- *************** TF transform ****************** -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom_robot_0" args="-9.0 4.8 0.0 0.0 0.0 0.0 map robot_0/odom 20"/>
+    <!-- *************** Map server ****************** -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find dwa_multi_robot)/slam/office.yaml" output="screen">
+        <param name="frame_id" value="map"/>
+	</node>
+</launch>

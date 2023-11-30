@@ -1,0 +1,41 @@
+include "diff_drive_robot.inc"
+
+define floor_plan model
+(
+  color "gray30"
+  boundary 1
+  gui_nose 0
+  gui_grid 0
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+  laser_return 1
+)
+
+resolution 0.02
+interval_sim 100 
+
+window
+(
+  size [870 424 ]
+  center [0.0 0.0]
+  rotate [0.0 0.0]
+  scale 13.058
+  show_data 1
+  show_grid 1
+)
+
+floor_plan
+(
+  name "maze"
+  bitmap "../maps/hospital_section.png"
+  size [65.16 26.58 2.0]
+  pose [0.0 0.0 0.0 0.0]
+)
+
+# throw in a robot
+diff_drive_robot
+(
+  pose [0.0 4.0 0.0 0.0 ]
+  name "robot"
+)
