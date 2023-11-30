@@ -8,7 +8,7 @@ author: Atsushi Sakai(@Atsushi_twi)
 See Wikipedia article (https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 """
-
+#!/usr/bin/env python
 import math
 import cv2
 import numpy as np
@@ -98,17 +98,6 @@ class AStarPlanner:
             c_id = min(open_set, key=lambda o: open_set[o].cost + self.calc_heuristic(goal_node, open_set[o]))
             current = open_set[c_id]
 
-            # # show graph
-            # if show_animation:  # pragma: no cover
-            #     plt.plot(self.calc_grid_position(current.x, self.min_x),
-            #             self.calc_grid_position(current.y, self.min_y), "xc")
-            #     # for stopping simulation with the esc key.
-            #     plt.gcf().canvas.mpl_connect('key_release_event',
-            #                                 lambda event: [exit(
-            #                                     0) if event.key == 'escape' else None])
-            #     if len(closed_set.keys()) % 10 == 0:
-            #         plt.pause(0.001)
-
             if current.x == goal_node.x and current.y == goal_node.y:
                 print("Find goal")
                 goal_node.parent_index = current.parent_index
@@ -141,21 +130,26 @@ class AStarPlanner:
                     if open_set[n_id].cost > node.cost:
                         # This path is the best until now. record it
                         open_set[n_id] = node
-        return self.calc_final_path(goal_node, closed_set)
+                        
+        path_meter, path_pixel = self.calc_final_path(goal_node, closed_set)
 
+        return path_meter, path_pixel
 
     def calc_final_path(self, goal_node: Node, closed_set):
         # generate final course
         # path = self.convertPixelToMeter(np.array([goal_node.x, goal_node.y])).reshape(1, 2)
-        path = np.array([goal_node.x, goal_node.y]).reshape(1, 2)
+        path_meter = self.convertPixelToMeter(np.array([goal_node.x, goal_node.y])).reshape(1, 2)
+        path_pixel = np.array([goal_node.x, goal_node.y]).reshape(1, 2)
         parent_index = goal_node.parent_index
         while parent_index != -1:
             n = closed_set[parent_index]
             # path = np.concatenate((path, self.convertPixelToMeter(np.array([n.x, n.y])).reshape(1, 2)), axis=0)
-            path = np.concatenate((path, np.array([n.x, n.y]).reshape(1, 2)), axis=0)
+            path_pixel = np.concatenate((path_pixel, np.array([n.x, n.y]).reshape(1, 2)), axis=0)
+            path_meter = np.concatenate((path_meter, self.convertPixelToMeter(np.array([n.x, n.y])).reshape(1, 2)), axis=0)
+            
             parent_index = n.parent_index
 
-        return np.array(path)
+        return np.flip(path_meter, axis = 0), np.flip(path_pixel.astype(np.int32), axis= 0)
 
     @staticmethod
     def calc_heuristic(n1, n2):
@@ -203,7 +197,8 @@ def main():
     goal = np.array([9.0,-4.8])
     start_pixel = a_star.convertMeterToPixel(start)
     goal_pixel = a_star.convertMeterToPixel(goal)
-    path = a_star.planning(start, goal).astype(np.int32)
+    path_meter, path = a_star.planning(start, goal)
+    print(path_meter)
     path.reshape((-1, 1, 2))
     cv2.circle(cost_map, start_pixel, 10, 0, -1)
     cv2.circle(cost_map, goal_pixel, 10, 0, -1)
@@ -212,5 +207,5 @@ def main():
     plt.show()
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

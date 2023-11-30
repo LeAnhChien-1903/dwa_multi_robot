@@ -12,3 +12,9 @@ time_trajectory: 0.3
 trajectory_sample: 2
 velocity_sample: 7
 sample_time: 0.1
+map_name: office
+laser_topic: base_scan
+odometry_topic: base_pose_ground_truth
+cmd_vel_topic: cmd_vel
+robot_width: 0.6
+robot_length: 0.9

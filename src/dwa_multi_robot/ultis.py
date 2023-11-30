@@ -1,8 +1,8 @@
+#!/usr/bin/env python
 import cv2
 import rospy
 import numpy as np
-
-
+import math
 class Parameters:
     def __init__(self):
         self.alpha = 0.8
@@ -19,6 +19,17 @@ class Parameters:
         self.trajectory_sample = 2
         self.velocity_sample = 7
         self.sample_time = 0.1
+        self.map_name: str = "office"
+        self.laser_topic: str = "base_scan"
+        self.odometry_topic: str = "base_pose_ground_truth"
+        self.cmd_vel_topic: str = "cmd_vel"
+        self.robot_width: float =  0.6
+        self.robot_length: float = 0.9
+        self.resolution: float = 0.025
+        self.origin_x: float = -10.0
+        self.origin_y: float = -10.0
+        self.radius: float = 0.6
+        self.initialize()
     
     def initialize(self):
         '''
@@ -35,3 +46,14 @@ class Parameters:
         self.min_angular_velocity = rospy.get_param("/min_angular_velocity")
         self.max_angular_velocity = rospy.get_param("/max_angular_velocity")
         self.sample_time = rospy.get_param("/sample_time")
+        self.map_name = rospy.get_param("/map_name")
+        self.laser_topic = rospy.get_param("/laser_topic")
+        self.odometry_topic = rospy.get_param("/odometry_topic")
+        self.cmd_vel_topic = rospy.get_param("/cmd_vel_topic")
+        self.robot_width = rospy.get_param("/robot_width")
+        self.robot_length = rospy.get_param("/robot_length")
+        self.radius = round(math.hypot(self.robot_length/2,  self.robot_width/2), 1)
+        self.resolution = rospy.get_param("/resolution")
+        origin = rospy.get_param("/origin")
+        self.origin_x = origin[0]
+        self.origin_y = origin[1]
