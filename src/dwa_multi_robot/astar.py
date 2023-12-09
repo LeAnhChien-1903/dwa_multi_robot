@@ -13,10 +13,17 @@ import math
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-
+from dwa_multi_robot.cubic_spline import *
 show_animation = True
 
-
+def calculatedDistance(point1: np.ndarray, point2: np.ndarray):
+    '''
+        Calculates the Euclidean distance between two points
+        ### Parameters
+        - point1: the coordinate of first point
+        - point2: the coordinate of second point
+    '''
+    return math.sqrt(np.sum(np.square(point1 - point2)))
 class AStarPlanner:
 
     def __init__(self, map_path:str, origin_x: float, origin_y: float, resolution: float, robot_radius:float):
@@ -132,8 +139,8 @@ class AStarPlanner:
                         open_set[n_id] = node
                         
         path_meter, path_pixel = self.calc_final_path(goal_node, closed_set)
-
-        return path_meter, path_pixel
+        smooth_path = self.smoothPath(path_meter)
+        return smooth_path, path_pixel
 
     def calc_final_path(self, goal_node: Node, closed_set):
         # generate final course
@@ -150,7 +157,49 @@ class AStarPlanner:
             parent_index = n.parent_index
 
         return np.flip(path_meter, axis = 0), np.flip(path_pixel.astype(np.int32), axis= 0)
-
+    
+    def checkCollision(self, start: np.ndarray, end: np.ndarray):
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        distance = math.hypot(dx, dy)
+        angle = math.atan2(dy, dx)
+        dist = np.arange(0, distance, 0.1)
+        # print(dist)
+        for i in dist:
+            point = np.array([start[0] + i * math.cos(angle), start[1] + i * math.sin(angle)])
+            point_pixel = self.convertMeterToPixel(point)
+            for extra_x in range(0, 2):
+                for extra_y in range(0,2):
+                    if self.cost_map[point_pixel[1] + extra_y, point_pixel[0] + extra_x] <= 100:
+                        return True
+        return False
+    def smoothPath(self, path_meter: np.ndarray):
+        smooth_path: np.ndarray = path_meter[0].reshape((1, 2))
+        for i in range(1, path_meter.shape[0], 5):
+            if i < path_meter.shape[0] - 1:
+                condition =  self.checkCollision(smooth_path[-1], path_meter[i]) == False
+                condition = condition and self.checkCollision(smooth_path[-1], path_meter[i+1]) == True
+                condition = condition or calculatedDistance(smooth_path[-1], path_meter[i]) > 0.5
+                if condition == True:
+                    smooth_path = np.append(smooth_path, path_meter[i].reshape((1, 2)), axis= 0)
+            else:
+                if self.checkCollision(smooth_path[-1], path_meter[i]) == False:
+                    smooth_path = np.append(smooth_path, path_meter[i].reshape((1, 2)), axis= 0)
+        smooth_path = np.append(smooth_path, path_meter[-1].reshape((1, 2)), axis= 0)
+        
+        x = smooth_path[:, 0]
+        y = smooth_path[:, 1]
+        ds = 0.1  # [m] distance of each interpolated points
+        
+        sp = CubicSpline2D(x, y)
+        s = np.arange(0, sp.s[-1], ds)
+        path_result = np.zeros((s.shape[0], 2))
+        for i in range(s.shape[0]):
+            ix, iy = sp.calc_position(s[i])
+            path_result[i, 0] = ix
+            path_result[i, 1] = iy
+            
+        return path_result
     @staticmethod
     def calc_heuristic(n1, n2):
         w = 1.0  # weight of heuristic
@@ -171,7 +220,7 @@ class AStarPlanner:
             return False
 
         # collision check
-        if self.cost_map[node.y, node.x] == 0 or self.cost_map[node.y, node.x] == 100:
+        if self.cost_map[node.y, node.x] <= 100:
             return False
 
         return True
@@ -198,12 +247,19 @@ def main():
     start_pixel = a_star.convertMeterToPixel(start)
     goal_pixel = a_star.convertMeterToPixel(goal)
     path_meter, path = a_star.planning(start, goal)
-    print(path_meter)
+    
+    plt.subplots(1)
+    plt.plot(path_meter[:, 0], path_meter[:, 1], "-g", label="Origin path")
+    plt.grid(True)
+    plt.axis("equal")
+    plt.xlabel("x[m]")
+    plt.ylabel("y[m]")
+    plt.legend()
     path.reshape((-1, 1, 2))
     cv2.circle(cost_map, start_pixel, 10, 0, -1)
     cv2.circle(cost_map, goal_pixel, 10, 0, -1)
     cv2.polylines(cost_map, [path], 0, 0, 4)
-    plt.imshow(cost_map, cmap='gray')
+    # plt.imshow(cost_map, cmap='gray')
     plt.show()
 
 
