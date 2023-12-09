@@ -20,7 +20,7 @@ define diff_drive_robot position
     size [0.9 0.6 0.40 ]
     origin [0.0 0.0 0.0 0.0]
     gui_nose 1
-
+    velocity_bounds [-1 2.0 -1 2.0 -1 2.0 -90 90 ]
     # kinematics
     drive "diff"
 

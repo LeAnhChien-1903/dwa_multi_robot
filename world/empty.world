@@ -29,7 +29,7 @@ window
 floor_plan
 (
   name "office"
-  bitmap "../slam/office.png"
+  bitmap "../slam/empty.png"
   size [20.0 20.0 2.0]
   pose [0.0 0.0 0.0 0.0]
 )
