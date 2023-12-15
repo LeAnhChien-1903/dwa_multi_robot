@@ -17,7 +17,7 @@ define diff_drive_robot position
     localization "odom"
     odom_error [0.03 0.03 999999 999999 999999 0.02]
 
-    size [0.9 0.6 0.40 ]
+    size [0.6 0.6 0.40 ]
     origin [0.0 0.0 0.0 0.0]
     gui_nose 1
     velocity_bounds [-1 2.0 -1 2.0 -1 2.0 -90 90 ]

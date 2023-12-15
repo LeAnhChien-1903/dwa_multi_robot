@@ -45,7 +45,7 @@ class AStarPlanner:
         for x in range(self.map.shape[1]):
             for y in range(self.map.shape[0]):
                 if self.map[y, x] == 0:
-                    cv2.circle(cost_map, (x, y), radius, 100, -1)
+                    cv2.circle(cost_map, (x, y), radius, 0, -1)
         for x in range(self.map.shape[1]):
             for y in range(self.map.shape[0]):
                 if self.map[y, x] == 0:

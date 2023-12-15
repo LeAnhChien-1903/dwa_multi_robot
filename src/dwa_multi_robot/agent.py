@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 import os
@@ -45,7 +45,7 @@ class Agent:
                 cost = np.zeros(self.params.velocity_sample**2)
                 new_vel = self.calculateNewVelocity(self.robot_states[self.robot_id, 3:5], self.params.sample_time)
                 new_trajectories = self.calculateAllNewTrajectories(self.robot_states[self.robot_id], new_vel)
-                progress_cost = self.calculateProgressCost(new_trajectories,local_goal)
+                progress_cost = self.calculateProgressCost(new_trajectories, local_goal)
                 
                 for i in range(cost.shape[0]):
                     grid_cost = self.calculateGridClearance(new_trajectories[i])
@@ -145,8 +145,11 @@ class Agent:
         for x_add in range(num_of_pixel_check):
             for y_add in range(num_of_pixel_check):
                 # collision check
+                if point[1] + y_add > self.cost_map.shape[0] - 1 or  point[0] + x_add > self.cost_map.shape[1] - 1 or point[1] + y_add < 0 or  point[0] + x_add < 0:
+                    continue
                 grid.append(self.cost_map[point[1] + y_add, point[0] + x_add])
-
+        if len(grid) == 0:
+            return 0
         return max(grid)
     
     def calculateAllNewTrajectories(self, current_state: np.ndarray, new_vel: np.ndarray):
@@ -377,7 +380,7 @@ class Agent:
         self.cmd_vel_pub = rospy.Publisher(self.robot_name + "/" + self.params.cmd_vel_topic, Twist, queue_size= 10)
         self.markers_pub = rospy.Publisher(self.robot_name + "/visualize", MarkerArray, queue_size= 10)
         self.path_pub = rospy.Publisher(self.robot_name + "/global_path", Path, queue_size= 10)
-        self.timer = rospy.Timer(rospy.Duration(self.params.sample_time), self.timerCallback)
+        self.timer = rospy.Timer(rospy.Duration(0.1), self.timerCallback)
         
         self.path_marker = Marker()
         self.path_marker.header.stamp = rospy.Time.now()

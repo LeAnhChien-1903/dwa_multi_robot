@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from dwa_multi_robot.ultis import *
 from dwa_multi_robot.astar import *
 
